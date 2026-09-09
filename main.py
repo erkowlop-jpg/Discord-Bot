@@ -1,6 +1,3 @@
-
-
-# 5. أمر البرودكاست
 @bot.tree.command(name="broadcast", description="Send a mass direct message to all server members (Admins only)")
 @app_commands.rename(message="announcement_text")
 @app_commands.guild_only()
@@ -42,4 +39,4 @@ async def send_dm(interaction: discord.Interaction, target_user: discord.Member,
         await interaction.response.send_message(f"✅ تم إرسال الرسالة بنجاح إلى {target_user.mention}!", ephemeral=True)
     except Exception:
         await interaction.response.send_message(f"❌ فشل الإرسال إلى {target_user.mention} (الخاص مغلق لديه).", ephemeral=True)
-
+‏client.run(TOKEN)
