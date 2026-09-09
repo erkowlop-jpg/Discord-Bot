@@ -39,4 +39,4 @@ async def send_dm(interaction: discord.Interaction, target_user: discord.Member,
         await interaction.response.send_message(f"✅ تم إرسال الرسالة بنجاح إلى {target_user.mention}!", ephemeral=True)
     except Exception:
         await interaction.response.send_message(f"❌ فشل الإرسال إلى {target_user.mention} (الخاص مغلق لديه).", ephemeral=True)
-‏client.run(TOKEN)
+‏Bot.run(TOKEN)
