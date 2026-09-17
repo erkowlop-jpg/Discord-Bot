@@ -1,7 +1,8 @@
 import discord
 from discord.ext import commands
+import os
 
-# إعدادات البوت والـ Intents
+# إعدادات البوت والـ Intents الأساسية
 intents = discord.Intents.default()
 intents.guilds = True
 intents.guild_messages = True
@@ -9,55 +10,52 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# استدعاء ملف الزر
 from tagPanel import TagButtonView
 
 @bot.event
 async def on_ready():
-    print(f"تم تسجيل الدخول بنجاح باسم: {bot.user.name}")
+    print(f"Logged in successfully as {bot.user.name}")
     bot.add_view(TagButtonView(bot))
-
-@bot.command()
-@commands.has_permissions(administrator=True)
-async def sendpanel(ctx, channel: discord.TextChannel = None):
-    channel = channel or ctx.channel
-    
-    # حذف رسالة الأمر لترتيب الشات
     try:
-        await ctx.message.delete()
-    except:
-        pass
+        # مزامنة أوامر الـ Slash مع ديسكورد لتظهر فوراً
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s).")
+    except Exception as e:
+        print(e)
 
-    # مميزات الرتبة
-    perks_text = (
-        "**💎 | مميزات الرتبة:**\n"
-        "• وصول لروم الخاصات الفخمة والـ Giveaways الحصرية.\n"
-        "• إمكانية إرسال الصور والروابط بحرية أكبر.\n"
-        "• لون خاص واسمك يرتفع فوق الأعضاء.\n"
-        "• دعمك المستمر لمجتمعنا الراقي 💙"
-    )
-
-    embed = discord.Embed(
-        title="✨ | نظام استلام رتبة تاق سيرفر SOUL",
-        description=(
-            "**أهلاً بك يا مبدع في مجتمع SOUL!** 🌟\n\n"
-            "ضع تاق السيرفر في بروفايلك واضغط على الزر بالأسفل لاستلام رتبتك فوراً وتفعيل المميزات.\n\n"
-            f"{perks_text}\n\n"
-            "> 📌 **ملاحظة:** النظام يفحص التاق تلقائياً، وإذا أزلته ستنسحب الرتبة تلقائياً."
-        ),
-        color=discord.Color.from_rgb(30, 144, 255)
-    )
+# أمر الـ Slash الجديد
+@bot.tree.command(name="sendpanel", description="إرسال لوحة استلام رتبة تاق السيرفر مع البنر")
+@discord.app_commands.checks.has_permissions(administrator=True)
+async def sendpanel(interaction: discord.Interaction):
+    await interaction.response.defer(ephemeral=True)
     
-    # استخدام رابط البنر المباشر
-    banner_url = "https://cdn.discordapp.com/attachments/1550166048920313996/1550176588333719742/7-1.png?ex=6aad61f3&is=6aac1073&hm=e8cdabedc9358596fa2cf8befa89bfebe10ad6555c1394d1494f5c2f3369494a&"
-    embed.set_image(url=banner_url)
+    banner_path = "banner.png"
     
-    await channel.send(embed=embed, view=TagButtonView(bot))
+    if os.path.exists(banner_path):
+        file = discord.File(banner_path, filename="banner.png")
+        embed = discord.Embed(
+            title="✨ | نظام استلام رتبة تاق السيرفر",
+            description=(
+                "**أهلاً بك في مجتمع SOUL!** 💙\n\n"
+                "لحصولك على الرتبة الخاصة بتاق السيرفر، يرجى وضع التاق في بروفايلك الشخصي ثم الضغط على الزر بالأسفل.\n\n"
+                "> 📌 **ملاحظة:** النظام يتحقق تلقائياً، وفي حال إزالة التاق ستتم إزالة الرتبة منك."
+            ),
+            color=discord.Color.from_rgb(30, 144, 255)
+        )
+        embed.set_image(url="attachment://banner.png")
+        
+        # إرسال البنر والزر للشات الحالي
+        await interaction.channel.send(embed=embed, file=file, view=TagButtonView(bot))
+        await interaction.followup.send("✅ تم إرسال اللوحة بنجاح!", ephemeral=True)
+    else:
+        embed = discord.Embed(
+            title="استلام رتبة التاق",
+            description="اضغط على الزر بالأسفل لاستلام رتبة تاق السيرفر.",
+            color=discord.Color.blue()
+        )
+        await interaction.channel.send(embed=embed, view=TagButtonView(bot))
+        await interaction.followup.send("⚠️ تم الإرسال بدون بنر (لعدم وجود ملف banner.png).", ephemeral=True)
 
-# ضع توكن البوت الخاص بك هنا بين علامتي التنصيص
-import os
-
-# ضع توكن البوت الخاص بك هنا (لو تبي تشغله محلياً بجهازك) أو خليه يسحبه من الاستضافة
 TOKEN = os.getenv("TOKEN")
 bot.run(TOKEN)
 
