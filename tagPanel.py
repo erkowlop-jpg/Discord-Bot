@@ -1,60 +1,84 @@
 import discord
 from discord.ui import Button, View
+import json
+import os
+
+SETTINGS_FILE = "settings.json"
+
+def load_settings():
+    if os.path.exists(SETTINGS_FILE):
+        with open(SETTINGS_FILE, "r") as f:
+            try:
+                return json.load(f)
+            except:
+                return {}
+    return {}
+
+def save_settings(data):
+    with open(SETTINGS_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
 class TagButtonView(View):
     def __init__(self, client):
         super().__init__(timeout=None)
         self.client = client
 
-    @discord.ui.button(custom_id="tag_role_get", label="استلام الرتبة", style=discord.ButtonStyle.success)
+    @discord.ui.button(custom_id="tag_role_get", label="استلام رتبة التاق", style=discord.ButtonStyle.blurple)
     async def get_tag_role(self, interaction: discord.Interaction, button: Button):
         try:
             await interaction.response.defer(ephemeral=True)
 
             async def reply(title: str, desc: str):
-                embed = discord.Embed(title=title, description=desc, color=discord.Color.blue())
+                embed = discord.Embed(title=title, description=desc, color=discord.Color.from_rgb(30, 144, 255))
                 await interaction.followup.send(embed=embed, ephemeral=True)
 
-            # استبدل الرقم هذا بـ ID الرتبة حق مميزات التاق في سيرفرك
-            role_id = 123456789012345678  
-            tag_text = "SOUL" # التاق المطلوب وضعه في البروفايل
+            settings = load_settings()
+            guild_id = str(interaction.guild.id)
+            guild_data = settings.get(guild_id, {})
+            
+            role_id = guild_data.get("role_id")
+            tag_text = guild_data.get("tag_text", ".gg/soul")
 
-            role = interaction.guild.get_role(role_id)
+            if not role_id:
+                return reply("الاعدادات ناقصة", "لم يتم تحديد الرتبة بعد.\n\nيرجى من الإدارة تحديد الرتبة باستخدام الأمر:\n/setrole @الرتبة")
+
+            role = interaction.guild.get_role(int(role_id))
             if not role:
-                return await reply("الاعدادات ناقصة", "❌ لم يتم تحديد الرتبة بعد أو الرتبة محذوفة.")
+                return reply("الرتبة غير موجودة", "الرتبة المحددة مسبقاً غير موجودة أو تم حذفها، يرجى إعادة تحديدها من قبل الإدارة.")
 
             me = interaction.guild.me
             if not me.guild_permissions.manage_roles or role.position >= me.top_role.position:
-                return await reply(
+                return reply(
                     "صلاحيات ناقصة",
-                    "❌ لا أستطيع اعطاء هذه الرتبة، ارفع رتبة البوت فوقها وأعطني صلاحية Manage Roles."
+                    "لا أستطيع إعطاء هذه الرتبة.\n\nيرجى رفع رتبة البوت لتكون فوق رتبة التاق، ومنحه صلاحية إدارة الرتب (Manage Roles)."
                 )
 
-            member = interaction.user
-            # ضع هنا كود التحقق من التاق الخاص بك
+            # محاكاة فحص التاق (استبدل هذه القيمة بالتحقق الفعلي الخاص بك)
             has_tag = True 
+
+            member = interaction.user
 
             if not has_tag:
                 if role in member.roles:
-                    await member.remove_roles(role, reason="ازالة رتبة تاق السيرفر - التاق غير موجود")
-                return await reply(
-                    "ما عندك التاق",
-                    f"❌ لازم تحط تاق السيرفر في بروفايلك ثم اضغط الزر مرة ثانية.\n\n**التاق المطلوب:** `{tag_text}`"
+                    await member.remove_roles(role, reason="إزالة رتبة تاق السيرفر - التاق غير موجود")
+                return reply(
+                    "التاق غير مضاف",
+                    f"عذراً، يجب عليك وضع تاق السيرفر في بروفايلك الشخصي أولاً ثم المحاولة مرة أخرى.\n\nالتاق المطلوب: {tag_text}"
                 )
 
             if role in member.roles:
-                return await reply("عندك الرتبة", f"✅ رتبة {role.mention} موجودة عندك أصلاً.")
+                return reply("تنبيه", f"رتبة {role.mention} موجودة في ملفك الشخصي بالفعل.")
 
-            await member.add_roles(role, reason="تاق السيرفر موجود في البروفايل")
+            await member.add_roles(role, reason="تم العثور على تاق السيرفر في البروفايل")
 
-            return await reply(
+            return reply(
                 "تم بنجاح",
-                f"✅ تم اعطاؤك رتبة {role.mention}\n\n> ملاحظة: لو شلت التاق أو غيرته لسيرفر ثاني تنسحب الرتبة تلقائياً."
+                f"تم منحك رتبة {role.mention} بنجاح.\n\nملاحظة: في حال إزالة التاق من بروفايلك، سيتم سحب الرتبة منك تلقائياً."
             )
 
         except Exception as error:
             print(error)
             if interaction.response.is_done():
-                await interaction.followup.send("❌ صار خطأ، حاول مرة ثانية.", ephemeral=True)
+                await interaction.followup.send("حدث خطأ غير متوقع، حاول مرة أخرى لاحقاً.", ephemeral=True)
             else:
-                await interaction.response.send_message("❌ صار خطأ، حاول مرة ثانية.", ephemeral=True)
+                await interaction.response.send_message("حدث خطأ غير متوقع، حاول مرة أخرى لاحقاً.", ephemeral=True)
