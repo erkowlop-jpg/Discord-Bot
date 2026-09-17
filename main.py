@@ -55,4 +55,9 @@ async def sendpanel(ctx, channel: discord.TextChannel = None):
     await channel.send(embed=embed, view=TagButtonView(bot))
 
 # ضع توكن البوت الخاص بك هنا بين علامتي التنصيص
+import os
+
+# ضع توكن البوت الخاص بك هنا (لو تبي تشغله محلياً بجهازك) أو خليه يسحبه من الاستضافة
+TOKEN = os.getenv("TOKEN")
 bot.run(TOKEN)
+
