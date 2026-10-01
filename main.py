@@ -70,11 +70,11 @@ async def rules(ctx):
 # 2. أمر الحذف / الكلير
 # اختصارات: !مسح ، !حذف ، !clear
 # ==========================================
-@bot.command(name="مسح", aliases=["حذف", "clear", "purge"])
+@bot.command(name="مسح", aliases=["حذف", "clear", "احذف"])
 @commands.has_role(ALLOWED_ROLE_ID)
 async def clear(ctx, amount: int = 10):
     await ctx.channel.purge(limit=amount + 1)
-    confirm = await ctx.send(f"🧹 تم حذف `{amount}` رسالة بنجاح.")
+    confirm = await ctx.send(f"من الرسائل بنجاح هذا العدد تم حذف `{amount}`")
     await asyncio.sleep(3)
     await confirm.delete()
 
@@ -83,14 +83,14 @@ async def clear(ctx, amount: int = 10):
 # 3. أمر التايم أوت / اسكات
 # اختصارات: !ميوت ، !عزل ، !timeout
 # ==========================================
-@bot.command(name="ميوت", aliases=["عزل", "تايم_اوت", "timeout"])
+@bot.command(name="ميوت", aliases=["اصه", "اسكت"])
 @commands.has_role(ALLOWED_ROLE_ID)
 async def timeout(ctx, member: discord.Member, duration: str = "10m", *, reason: str = "غير محدد"):
     unit = duration[-1]
     try:
         time_val = int(duration[:-1])
     except ValueError:
-        await ctx.send("❌ الصيغة غير صحيحة! استخدم مثلاً: `10m` أو `1h` أو `1d`")
+        await ctx.send("❌ الصيغة غلط يقلبي! استخدم مثلاً: `10m` أو `1h` أو `1d`")
         return
 
     if unit == "s":
@@ -102,7 +102,7 @@ async def timeout(ctx, member: discord.Member, duration: str = "10m", *, reason:
     elif unit == "d":
         delta = timedelta(days=time_val)
     else:
-        await ctx.send("❌ الوحدة غير صحيحة! استخدم: (s, m, h, d)")
+        await ctx.send("❌ الوحدة غير صحيحة! استخدم: (s(ثانيه),m(دقيقة),h(ساعة),d(يوم))")
         return
 
     try:
