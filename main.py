@@ -1,94 +1,54 @@
 import discord
 from discord.ext import commands
-import os
-import json
 
-SETTINGS_FILE = "settings.json"
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.default())
 
-def load_settings():
-    if os.path.exists(SETTINGS_FILE):
-        with open(SETTINGS_FILE, "r") as f:
-            try:
-                return json.load(f)
-            except:
-                return {}
-    return {}
-
-def save_settings(data):
-    with open(SETTINGS_FILE, "w") as f:
-        json.dump(data, f, indent=4)
-
-intents = discord.Intents.default()
-intents.guilds = True
-intents.guild_messages = True
-intents.members = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-from tagPanel import TagButtonView
-
-@bot.event
-async def on_ready():
-    print(f"Logged in successfully as {bot.user.name}")
-    bot.add_view(TagButtonView(bot))
-    try:
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s).")
-    except Exception as e:
-        print(e)
-
-# 1. أمر تحديد الرتبة عبر السلاش
-@bot.tree.command(name="setrole", description="تحديد رتبة التاق الخاصة بالسيرفر")
-@discord.app_commands.describe(role="اختر رتبة التاق التي ستمنح للعضويات")
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def setrole(interaction: discord.Interaction, role: discord.Role):
-    settings = load_settings()
-    guild_id = str(interaction.guild.id)
-    
-    if guild_id not in settings:
-        settings[guild_id] = {}
-        
-    settings[guild_id]["role_id"] = str(role.id)
-    save_settings(settings)
-    
-    await interaction.response.send_message(f"تم تعيين رتبة تاق السيرفر بنجاح لتكون: {role.mention}", ephemeral=True)
-
-# 2. أمر إرسال اللوحة بالبنر والنص الرسمي بدون إيموجيات
-@bot.tree.command(name="sendpanel", description="إرسال لوحة استلام رتبة تاق السيرفر مع البنر")
-@discord.app_commands.checks.has_permissions(administrator=True)
-async def sendpanel(interaction: discord.Interaction):
-    await interaction.response.defer(ephemeral=True)
-    
-    banner_path = "banner.png"
-    
-    embed = discord.Embed(
-        title="نظام التحقق من تاق سيرفر SOUL",
-        description=(
-            "عضو SOUL الكريم،\n\n"
-            "حرصاً منا على تنظيم السيرفر وتقدير الأعضاء الداعمين، تم تفعيل النظام التلقائي لمنح رتبة التاق الخاصة بالسيرفر.\n\n"
-            "--- \n\n"
-            "شروط وضوابط الحصول على الرتبة:\n"
-            "• وضع التاق: يجب إدراج تاق السيرفر في الملف الشخصي (البروفايل).\n"
-            "• التحقق التلقائي: يتم التحقق من وجود التاق بشكل آلي فور الضغط على زر الاستلام.\n"
-            "• الاستمرارية: في حال إزالة التاق من الملف الشخصي، سيقوم النظام بسحب الرتبة تلقائياً.\n\n"
-            "--- \n\n"
-            "خطوات الاستلام:\n"
-            "1. قم بإضافة تاق السيرفر في بروفايلك الشخصي.\n"
-            "2. اضغط على الزر أدناه (استلام رتبة التاق).\n\n"
-            "ملاحظة: لأي استفسارات أو مواجهة مشاكل تقنية، يرجى فتح تذكرة دعم فني لدى الإدارة."
-        ),
-        color=discord.Color.from_rgb(30, 144, 255)
+@bot.command()
+@commands.has_role(1554391694068420728)
+async def rules(ctx):
+    rules_description = (
+        "**1 - يمنع السب والشتـم او الالفاظ السيئة**\n\n"
+        "**2 - يمنع التجارة بجميع الطرق**\n\n"
+        "**3 - يمنع الاعلان لأي سيرفر او متجر**\n\n"
+        "**4 - يمنع الاعلان لأي حساب تجاري او خاص**\n\n"
+        "**5 - يمنع التطرق لمواضيع سياسية او دينية**\n\n"
+        "**6 - يمنع نشر صور مخله بالأدب او وضعها بجميع الطرق**\n\n"
+        "**7 - يمنع نشر المقاطع المخله بالأدب ومقاطع الالحاد**\n\n"
+        "**8 - يمنع تشفير الكلمات بجميع الطرق ( تنبيه : مهما كانت نيتك صافية او سيئة دامك شفرت انت بتتحاسب )**\n\n"
+        "**9 - يمنع نشر الروابط**\n\n"
+        "**10 - يمنع طلب المال بالالعاب او بالواقع ( التسول )**\n\n"
+        "**11 - يمنع العنصريه مهما كانت الاسباب (بشرة/ديانه/فلوس/طريقة كلام/امراض/والخ)**\n\n"
+        "**12 - يمنع طلب رتبه**\n\n"
+        "**13 - يمنع ازعاج الادارة العليا الا للضرورة القصوى**\n\n"
+        "**14 - يمنع السبام بجميع الطرق**\n\n"
+        "**15 - يمنع التشبه بالنساء ( والعكس كذلك )**\n\n"
+        "**16 - يرجى التقييد بتخصص الرومات**\n\n"
+        "**17 - يمنع مشاركة صور خاصة / فضايح / معلومات خاصة تعرضك للباند اغلب الاحيان**\n\n"
+        "**18 - يمنع التشهير**\n\n"
+        "**19 - يمنع ذكر اسامي سيرفرات اخرى داخل السيرفر**\n\n"
+        "**20 - يمنع انتحال الشخصية بالمزح او غيره**\n\n"
+        "**21 - يمنع فتح المايك ( للبنات ) في رومات تتضمن عيال**\n\n"
+        "**--------------------------------------------------------**\n\n"
+        "## تحذير\n\n"
+        "**1 - عدم قراءتك للقوانين ليس عذر ولا تبرير نافع**\n\n"
+        "**2 - المسؤول الاول هو الشخص الذي افتعل المشكلة منذ البداية**\n\n"
+        "**3 - الاستهبال بالمواضيع الجدية يعرضك لزيادة العقوبة**"
     )
-    
-    if os.path.exists(banner_path):
-        file = discord.File(banner_path, filename="banner.png")
-        embed.set_image(url="attachment://banner.png")
-        await interaction.channel.send(embed=embed, file=file, view=TagButtonView(bot))
-    else:
-        await interaction.channel.send(embed=embed, view=TagButtonView(bot))
-        
-    await interaction.followup.send("تم إرسال اللوحة بنجاح إلى الشات.", ephemeral=True)
 
-TOKEN = os.getenv("TOKEN")
-bot.run(TOKEN)
+    my_embed = discord.Embed(
+        title="### القوانين | Rules",
+        description=rules_description,
+        color=discord.Color.dark_grey()
+    )
 
+    my_embed.set_image(url="https://cdn.discordapp.com/attachments/1555159023924289536/1555171435432124476/1790756933339.jpg?backend=b2&ex=6abf8dc3&is=6abe3c43&hm=86d6dc594bee62e9d3a9c9706f180890058761bd8837c833db3e6706f7b2f6db&")
+    my_embed.set_footer(text="by zilks  المز")
+
+    await ctx.send(embed=my_embed)
+
+@rules.error
+async def rules_error(ctx, error):
+    if isinstance(error, commands.MissingRole):
+        await ctx.send("ماعندك صلاحية يغالي")
+
+bot.run("TOKEN")
